@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações das Músicas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Escolha uma das opções abaixo para listar suas informações.</h1>
+    <button id="getLikedTracks" onclick="getLikedTracks()">Ver Músicas Curtidas</button>
+    <button id="getTopTracks" onclick="getTopTracks()">Ver Músicas Mais Escutadas</button>
+    
+    <div id="likedTracks"></div>
+    <div id="topTracks"></div>
+
+    <script>
+        async function getLikedTracks() {
+            const likedTracksDiv = document.getElementById('likedTracks');
+            const topTracksDiv = document.getElementById('topTracks');
+
+            // Clear both sections
+            likedTracksDiv.innerHTML = '';
+            topTracksDiv.innerHTML = '';
+
+            const response = await fetch('/liked-songs');
+
+            if (response.ok) {
+                const data = await response.json();
+                likedTracksDiv.innerHTML = data.items.map(item => {
+                    const durationMs = item.track.duration_ms;
+                    const minutes = Math.floor(durationMs / 60000);
+                    const seconds = Math.floor((durationMs % 60000) / 1000);
+                    const duration = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                    const albumImage = item.track.album.images[0] ? item.track.album.images[0].url : '';
+
+                    return `
+                        <div>
+                            <strong>${item.track.name}</strong><br>
+                            <img src="${albumImage}" alt="${item.track.album.name}" style="width: 100px; height: 100px;"><br>
+                            Artista: ${item.track.artists.map(artist => artist.name).join(', ')}<br>
+                            Álbum: ${item.track.album.name}<br>
+                            Duração: ${duration} <br>
+                        </div>
+                        <br>
+                    `;
+                }).join('');
+            } else {
+                likedTracksDiv.innerText = 'Erro ao buscar músicas curtidas.';
+            }
+        }
+
+        async function getTopTracks() {
+            const topTracksDiv = document.getElementById('topTracks');
+            const likedTracksDiv = document.getElementById('likedTracks');
+
+            // Clear both sections
+            topTracksDiv.innerHTML = '';
+            likedTracksDiv.innerHTML = '';
+
+            const response = await fetch('/top-tracks');
+
+            if (response.ok) {
+                const data = await response.json();
+                topTracksDiv.innerHTML = data.items.map(item => {
+                    const durationMs = item.duration_ms;
+                    const minutes = Math.floor(durationMs / 60000);
+                    const seconds = Math.floor((durationMs % 60000) / 1000);
+                    const duration = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                    const albumImage = item.album.images[0] ? item.album.images[0].url : '';
+
+                    return `
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            <img src="${albumImage}" alt="${item.album.name}" style="width: 100px; height: 100px;"><br>
+                            Artista: ${item.artists.map(artist => artist.name).join(', ')}<br>
+                            Álbum: ${item.album.name}<br>
+                            Duração: ${duration} <br>
+                        </div>
+                        <br>
+                    `;
+                }).join('');
+            } else {
+                topTracksDiv.innerText = 'Erro ao buscar músicas mais escutadas.';
+            }
+        }
+    </script>
+</body>
+</html>
